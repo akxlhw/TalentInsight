@@ -177,3 +177,13 @@ def test_github_match_case_insensitive():
     ]
     profiles = linking.link_records(records)
     assert len(profiles) == 1
+
+
+def test_profile_name_falls_back_to_real_name():
+    # 竞赛域记录只有 real_name：画像展示名组装链需回退，否则 name 为空串
+    profiles = linking.link_records(
+        [{"domain": "competition",
+          "item": {"real_name": "Gennady Korotkevich", "handle": "tourist",
+                   "max_rating": 3900, "rank_title": "Legendary Grandmaster"}}])
+    assert profiles[0]["name"] == "Gennady Korotkevich"
+    assert profiles[0]["person_id"].startswith("p_")

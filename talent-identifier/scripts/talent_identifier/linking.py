@@ -159,7 +159,9 @@ def link_records(records: list[dict]) -> list[dict]:
         lead = members[0]
         lead_item = _item_of(records[lead])
         profile = {
-            "name": lead_item.get("name") or lead_item.get("name_en") or "",
+            # 展示名链 name > name_en > real_name（竞赛域记录只有 real_name）
+            "name": lead_item.get("name") or lead_item.get("name_en")
+            or lead_item.get("real_name") or "",
             "name_en": lead_item.get("name_en") or "",
             "records": {records[m].get("domain", ""): _item_of(records[m]) for m in members},
             "linked_domains": [records[m].get("domain", "") for m in members],
