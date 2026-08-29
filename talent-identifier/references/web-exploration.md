@@ -4,7 +4,7 @@
 
 ## 目标信息七类（kind 枚举，固定拼写）
 
-`position_change`（职位变动）/ `paper`（论文）/ `project`（项目）/ `award`（获奖）/ `talk`（演讲）/ `blog`（博客）/ `social`（社媒动态）。
+`position_change`（职位变动）/ `paper`（论文）/ `project`（项目）/ `award`（获奖）/ `talk`（演讲）/ `blog`（博客）/ `social`（社媒）。
 
 ## 信源优先级（从高到低）
 

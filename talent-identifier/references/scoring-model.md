@@ -14,7 +14,7 @@
 | open_source | `stars 0.45 + followers 0.35 + breadth 0.20`（breadth = `len(primary_languages)` 的 lognorm） |
 | lab | `100 × role_weight × lab_prestige`（无其他组件） |
 | competition | `rating 0.60 + rank_title 0.25 + medals 0.15`；rating 取 `max_rating`（缺失回退 `current_rating`）lognorm；medals = `gold×3 + silver×2 + bronze` 的 lognorm |
-| industry | 有 `match_score`（非 None）时：`org 0.5 + title 0.3 + match 0.2`（match = match_score/100）；无 `match_score` 时：`org 0.625 + title 0.375` |
+| industry | 有 `match_score` 或 `best_match_score` 时（`match_score` 优先、缺失回退 `best_match_score`；`is not None` 判断，**0 值=有 match 且为 0**）：`org 0.5 + title 0.3 + match 0.2`（match = 分数/100）；两者均无时：`org 0.625 + title 0.375` |
 
 子分 = `100 × Σ(权重 × 组件值)`，写入 scores.jsonl 前先 `round(x, 1)`。
 
@@ -65,7 +65,7 @@
 1. **指标全缺的域不参与计算**：industry 需 `current_org`/`current_title` 至少其一；lab 需角色信息（`role_section`/`role_type`）与实验室信息（`lab_name`/`parent_lab`）至少其一。全缺 → 该域无子分、不出现在 domain_scores。
 2. **所有域均缺 → t_score=null**，榜单尾置，rank 照编。
 3. **子串误匹配面**：机构/实验室匹配是子串包含，"Fairfield" 会命中 `fair`（LAB_PRESTIGE 1.0）——已知启发式限制，报告如遇可人工复核，不改代码。
-4. **match_score=0 怪异点**：`match_score=0`（非 None）走三因子权重，行业子分 = `100×(0.5×org+0.3×title)`，低于无 match_score 时的 `100×(0.625×org+0.375×title)`；默认锚点（org 0.6、title 0.5）下即 **45.0 vs 56.2**——0 分锚点低于默认锚点，已知怪异点，保留。
+4. **match_score=0 怪异点**：`match_score=0`（含回退得到的 `best_match_score=0`，非 None）走三因子权重，行业子分 = `100×(0.5×org+0.3×title)`，低于无 match 时的 `100×(0.625×org+0.375×title)`；默认锚点（org 0.6、title 0.5）下即 **45.0 vs 56.2**——0 分锚点低于默认锚点，已知怪异点，保留。
 
 ## 默认值一览
 
