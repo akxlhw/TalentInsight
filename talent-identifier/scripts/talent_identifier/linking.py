@@ -69,8 +69,11 @@ def _record_identity(item: dict) -> dict:
            or item.get("school") or item.get("current_org")
            or item.get("company") or item.get("lab_name") or "")
     return {
-        "name": normalize_name(item.get("name_en") or item.get("name") or ""),
-        "cn_name": normalize_name(item.get("name") or ""),
+        # name 链 name_en > name > real_name；cn_name 链 name > real_name
+        #（后端 competition 域人名只有 real_name）
+        "name": normalize_name(item.get("name_en") or item.get("name")
+                               or item.get("real_name") or ""),
+        "cn_name": normalize_name(item.get("name") or item.get("real_name") or ""),
         "homepage": normalize_url(item.get("homepage") or ""),
         "github": _canonical_github(item),
         "orcid": (item.get("orcid") or "").lower().strip(),

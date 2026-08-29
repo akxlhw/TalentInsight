@@ -32,7 +32,7 @@ AI4TALENT Open API 是本 skill 唯一的数据来源（阶段1 拉取）。本�
 
 - **重试**：429 / 5xx / 传输异常（`httpx.TransportError`）触发重试，共 3 次尝试，指数退避 1s/2s；耗尽后抛 `ApiUnreachable`。其他 4xx 不重试，立即抛 `httpx.HTTPStatusError`。
 - **分页终止三条件**（任一满足即停）：本页 `items` 为空；累计条数 ≥ `total`（响应缺 `total` 时按累计数处理）；已拉满 `limit`。
-- **跨域搜索防御性解析**：响应可能两种形态——顶层 `items` 列表，或「域名 → {items} / 域名 → []」的映射。解析规则：非 dict 载荷 → 空结果；映射形态下逐键取 `items`（或直接列表），非 list 丢弃；条目非 dict 丢弃；无 `domain`/`source_domain`/`source` 字段的条目标 `domain=unknown`；**无 `name` 的条目丢弃**。
+- **跨域搜索防御性解析**：响应可能两种形态——顶层 `items` 列表，或「域名 → {items} / 域名 → []」的映射。解析规则：非 dict 载荷 → 空结果；映射形态下逐键取 `items`（或直接列表），非 list 丢弃；条目非 dict 丢弃；无 `domain`/`source_domain`/`source` 字段的条目标 `domain=unknown`；**无 `name` 且无 `real_name` 的条目丢弃**，仅有 `real_name` 的条目（competition 域）回填 `name` 后保留。
 - **keyword 兜底**（fetch_profiles.py）：域列表带 `keyword` 被 4xx 拒绝或重试耗尽时，降级为无条件拉取 + 本地子串过滤（keyword 出现在整条 JSON 里即保留）；兜底也失败则记缺口继续跑，不阻塞其他域。
 
 ## 各域关键字段
@@ -65,10 +65,12 @@ curl -s -H "X-API-Key: $AI4TALENT_API_KEY" \
   "$AI4TALENT_BASE_URL/open-api/academic/talents?page_size=1"
 ```
 
-以实际响应为准：若字段名/脱敏情况与本文档不符，按实际响应适配（例如 scoring 读的 `match_score` 与后端返回的 `best_match_score`、academic 列表缺 `latest_active_year` 属已知偏差），并将差异回填本文档。
+以实际响应为准：若字段名/脱敏情况与本文档不符，按实际响应适配（例如 academic 列表缺 `latest_active_year` 属已知偏差，见下节），并将差异回填本文档。
 
 ## 已知字段偏差（写作时核对自后端代码）
 
-1. industry 返回 `best_match_score`，评分代码读 `match_score` → 现状行业域恒走「无 match_score」两因子权重。
-2. academic 列表白名单不含 `latest_active_year`/`education_school`（详情才有 `latest_active_year`/`education_school_name`）→ 列表项活跃度回退 0.3、机构为空。
-3. competition 人名字段为 `real_name`（非 `name`），跨域搜索解析会丢弃无 `name` 条目，竞赛人才建议走域列表而非跨域搜索。
+历史记录过三处漂移，前两处已在 skill 侧做兼容，仅剩一处数据局限：
+
+1. ~~industry 返回 `best_match_score`，评分代码读 `match_score`~~ → **已兼容**：`score_industry` 优先读 `match_score`，缺失时回退 `best_match_score`（0 值视为「有 match 且为 0」）。
+2. academic 列表白名单不含 `latest_active_year`/`education_school`（详情才有 `latest_active_year`/`education_school_name`）→ 列表项活跃度回退 0.3、机构为空。**唯一遗留的数据局限**，代码已有回退，无需处理。
+3. ~~competition 人名字段为 `real_name`（非 `name`），跨域搜索解析丢弃无 `name` 条目~~ → **已兼容**：`_iter_cross_items` 接受仅有 `real_name` 的条目并回填 `name`，`_record_identity` 的 name/cn_name 提取链也含 `real_name`；竞赛人才走跨域搜索不再丢名。

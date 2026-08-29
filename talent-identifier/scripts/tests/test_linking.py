@@ -162,6 +162,13 @@ def test_low_hint_suppressed_when_orgs_conflict():
     assert all(not p.get("suspected_same_person") for p in profiles)
 
 
+def test_record_identity_reads_real_name():
+    # 后端 competition 域人名只有 real_name：name/cn_name 提取链需覆盖（name_en 仍优先）
+    ident = linking._record_identity({"real_name": "Gennady Korotkevich"})
+    assert ident["name"] == "gennadykorotkevich"  # 归一化非空
+    assert ident["cn_name"] == "gennadykorotkevich"
+
+
 def test_github_match_case_insensitive():
     records = [
         _rec("open_source", github_login="yiwu"),

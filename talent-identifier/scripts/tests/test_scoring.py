@@ -138,6 +138,27 @@ def test_industry_renormalize_without_match_score():
     assert abs(sum(w.values()) - 1.0) < 1e-9
 
 
+def test_industry_reads_best_match_score():
+    # 后端 industry 返回 best_match_score（无 match_score）：match=80 应走三因子权重路径
+    profs = [_prof("p1", "A", industry={"current_org": "OpenAI",
+                                        "current_title": "Principal",
+                                        "best_match_score": 80})]
+    rows = scoring.compute_scores(profs)
+    by = {r["person_id"]: r for r in rows}
+    w = scoring._industry_weights(has_match=True)
+    expected = 100 * (w["org"] * 1.0 + w["title"] * 0.95 + w["match"] * 0.8)
+    assert by["p1"]["domain_scores"]["industry"] == round(expected, 1)  # 94.5
+    assert by["p1"]["score_components"]["industry"]["match"] == 0.8
+
+    # best_match_score=0 视为「有 match 且为 0」，而非无 match（否则误走两因子权重）
+    rows0 = scoring.compute_scores([_prof("p2", "B", industry={
+        "current_org": "OpenAI", "current_title": "Principal", "best_match_score": 0})])
+    by0 = {r["person_id"]: r for r in rows0}
+    expected0 = 100 * (w["org"] * 1.0 + w["title"] * 0.95 + w["match"] * 0.0)
+    assert by0["p2"]["domain_scores"]["industry"] == round(expected0, 1)  # 78.5，非两因子的 98.1
+    assert by0["p2"]["score_components"]["industry"]["match"] == 0.0
+
+
 def test_industry_with_match_score():
     profs = [_prof("p1", "A", industry={"current_org": "OpenAI",
                                         "current_title": "Research Scientist",

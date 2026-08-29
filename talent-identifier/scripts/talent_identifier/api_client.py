@@ -29,10 +29,15 @@ def _iter_cross_items(payload) -> list[dict]:
     for it in items:
         if not isinstance(it, dict):
             continue
+        # 后端 competition 域人名字段是 real_name（无 name）：兼容读取并回填 name
+        name = it.get("name") or it.get("real_name")
+        if not name:
+            continue
         if not any(it.get(k) for k in ENVELOPE_DOMAIN_KEYS):
             it = dict(it, domain="unknown")
-        if it.get("name"):
-            out.append(it)
+        if not it.get("name"):
+            it = dict(it, name=name)
+        out.append(it)
     return out
 
 

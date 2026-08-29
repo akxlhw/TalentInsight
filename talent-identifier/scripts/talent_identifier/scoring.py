@@ -156,7 +156,8 @@ def score_competition(profiles):
 
 
 def score_industry(profiles):
-    """行业域子分：org 声望 + 职级权重（有 match_score 时三项加权）；org/title 全缺则不参与。"""
+    """行业域子分：org 声望 + 职级权重（有 match_score/best_match_score 时三项加权）；
+    org/title 全缺则不参与。后端字段是 best_match_score，match_score 优先、缺失回退。"""
     rows = [p for p in profiles if "industry" in p["records"]]
     if not rows:
         return {}
@@ -165,11 +166,13 @@ def score_industry(profiles):
         it = p["records"]["industry"]
         if not it.get("current_org") and not it.get("current_title"):
             continue  # 指标全缺的域不参与计算
-        has_match = it.get("match_score") is not None
+        match = it.get("match_score") if it.get("match_score") is not None \
+            else it.get("best_match_score")
+        has_match = match is not None  # 0 值视为「有 match 且为 0」
         wts = _industry_weights(has_match)
         comps = {"org": _org_prestige(it.get("current_org")),
                  "title": _title_weight(it.get("current_title")),
-                 "match": (it.get("match_score") or 0) / 100.0 if has_match else 0.0}
+                 "match": (match or 0) / 100.0 if has_match else 0.0}
         out[p["person_id"]] = {"sub": 100 * sum(wts[k] * comps[k] for k in comps),
                                "components": comps}
     return out

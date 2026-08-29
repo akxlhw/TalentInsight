@@ -104,6 +104,14 @@ def test_4xx_raises_immediately_no_retry(monkeypatch):
     assert len(calls) == 1 and sleeps == []
 
 
+def test_cross_search_accepts_real_name_only():
+    # 后端 competition 域人名字段是 real_name（无 name）：不再丢弃，且回填 name 供下游统一读取
+    payload = {"competition": [{"real_name": "Gennady Korotkevich", "max_rating": 3900}]}
+    out = api_client._iter_cross_items(payload)
+    assert len(out) == 1
+    assert out[0]["name"] == "Gennady Korotkevich"
+
+
 def test_health_false_when_unreachable(monkeypatch):
     def boom(*a, **k):
         raise api_client.httpx.ConnectError("no")
