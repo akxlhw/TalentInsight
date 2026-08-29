@@ -92,5 +92,9 @@ uv run --with httpx --with pytest python -m pytest scripts/tests -v   # 103 pass
 
 ## 关联项目
 
-- **[AI4TALENT]**（私有）：智能人才库平台——academic / open_source / lab / competition / industry 五域数据与 Open API
+- **AI4TALENT**（私有）：智能人才库平台——academic / open_source / lab / competition / industry 五域数据与 Open API
 - 同生态采集 skill：ai-lab-talent-crawler、comp-talent-crawler、smart-talent-sourcing（数据"进"，本 skill 负责"洞察出"）
+
+## License
+
+[MIT](LICENSE)
