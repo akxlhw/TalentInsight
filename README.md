@@ -50,7 +50,9 @@ talent-identifier/
 
 - Python 3.11+（唯一运行时依赖 `httpx`；测试另需 `pytest`，推荐用 [uv](https://docs.astral.sh/uv/) 免安装执行）
 - 运行中的 AI4TALENT 后端（默认 `http://localhost:8003/api/v1`）与一个含五域 `:read` scope 的 `X-API-Key`
-- 配置：`ai4talent.config.json`（skill 目录模板，cwd 覆盖），或环境变量 `AI4TALENT_API_KEY` / `AI4TALENT_BASE_URL`
+- 配置：`cp talent-identifier/ai4talent.config.example.json talent-identifier/ai4talent.config.json`
+  并填入 `api_key`（本地文件已 gitignore，不会泄露；cwd 下同名文件优先生效），或用环境变量
+  `AI4TALENT_API_KEY` / `AI4TALENT_BASE_URL`
 
 ### 领域识别（输入=技术方向）
 

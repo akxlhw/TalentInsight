@@ -19,8 +19,10 @@ description: |
 
 ## 前置检查（执行前必做）
 
-1. 配置：cwd 或 skill 目录的 `ai4talent.config.json`，`api_key` 可用环境变量
-   `AI4TALENT_API_KEY` 覆盖；base_url 可用 `AI4TALENT_BASE_URL` 覆盖。
+1. 配置：若 skill 目录还没有 `ai4talent.config.json`，复制 `ai4talent.config.example.json`
+   为 `ai4talent.config.json`（该文件已 gitignore，真实 key 不会入库）并填入 `api_key`；
+   cwd 下同名文件优先生效。`api_key` 亦可用环境变量 `AI4TALENT_API_KEY` 覆盖；
+   base_url 可用 `AI4TALENT_BASE_URL` 覆盖。
 2. 探活：`curl -s -m 5 <base_url>/health`，不通则提示用户先启动 AI4TALENT 后端再停止。
 3. 运行时：Python 3.11+；脚本依赖仅 httpx。执行命令统一用
    `uv run --with httpx python scripts/xxx.py ...`（uv 缺失且本机 python 有 httpx 时可直跑）。
