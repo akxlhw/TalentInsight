@@ -69,8 +69,13 @@ curl -s -H "X-API-Key: $AI4TALENT_API_KEY" \
 
 ## 已知字段偏差（写作时核对自后端代码）
 
-历史记录过三处漂移，前两处已在 skill 侧做兼容，仅剩一处数据局限：
+历史记录过四处漂移，前三处已在 skill 侧做兼容，仅剩一处数据局限：
 
 1. ~~industry 返回 `best_match_score`，评分代码读 `match_score`~~ → **已兼容**：`score_industry` 优先读 `match_score`，缺失时回退 `best_match_score`（0 值视为「有 match 且为 0」）。
 2. academic 列表白名单不含 `latest_active_year`/`education_school`（详情才有 `latest_active_year`/`education_school_name`）→ 列表项活跃度回退 0.3、机构为空。**唯一遗留的数据局限**，代码已有回退，无需处理。
 3. ~~competition 人名字段为 `real_name`（非 `name`），跨域搜索解析丢弃无 `name` 条目~~ → **已兼容**：`_iter_cross_items` 接受仅有 `real_name` 的条目并回填 `name`，`_record_identity` 的 name/cn_name 提取链也含 `real_name`；竞赛人才走跨域搜索不再丢名。
+4. 跨域搜索摘要（UnifiedTalentSummary）只有 `domain`/`talent_id`/`name`/`identifier`/`url`/`tags`，**无 org、无任何量化指标**（names 模式数据全来自此端点）：
+   - medium（名字+机构）合并不可用——摘要无机构字段；
+   - T-score 多为空——指标全缺的域不评分（`_has_signal` 守卫，不产生合成分）；
+   - skill 侧已做轻量缓解：`_record_identity` 的 homepage 提取回退 `url`（url 相同可触发 high 合并）、`_flatten_tags` 读取 `tags` 键（标签重叠可触发 low 疑似提示）；
+   - 后续可用 `GET /open-api/{domain}/talents/{id}` 详情补全 org 与指标（排期项，不在当前实现内）。

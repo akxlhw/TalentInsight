@@ -45,6 +45,17 @@ def test_list_domain_pagination(monkeypatch):
     assert len(items) == 150
 
 
+def test_list_domain_maps_underscore_to_hyphen(monkeypatch):
+    # 后端路由是 /open-api/open-source/talents（连字符）；skill config 域名是
+    # open_source（下划线），直接拼路径会 404 → 兜底再 404 → 整域静默进 gaps
+    urls = []
+    monkeypatch.setattr(api_client.httpx, "get",
+                        lambda url, **k: (urls.append(url), FakeResp(200, {"items": [], "total": 0}))[1])
+    c = api_client.OpenApiClient("http://x/api/v1", "sk")
+    c.list_domain("open_source", {}, limit=10)
+    assert urls[0].startswith("http://x/api/v1/open-api/open-source/talents")
+
+
 def test_cross_search_flatten_items_envelope():
     c = api_client.OpenApiClient.__new__(api_client.OpenApiClient)
     payload = {"items": [{"domain": "academic", "name": "A"}, {"domain": "lab", "name": "B"}]}

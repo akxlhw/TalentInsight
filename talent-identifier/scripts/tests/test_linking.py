@@ -169,6 +169,15 @@ def test_record_identity_reads_real_name():
     assert ident["cn_name"] == "gennadykorotkevich"
 
 
+def test_record_identity_reads_url_and_tags():
+    # 跨域搜索摘要（UnifiedTalentSummary）无 homepage，但有 url 和 tags：
+    # homepage 提取需回退 url，tags 平铺需读 "tags" 键
+    ident = linking._record_identity({"name": "X", "url": "https://yiwu.ai",
+                                      "tags": ["llm"]})
+    assert ident["homepage"] == "yiwu.ai"
+    assert "llm" in ident["tags"]
+
+
 def test_github_match_case_insensitive():
     records = [
         _rec("open_source", github_login="yiwu"),

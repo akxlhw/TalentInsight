@@ -62,7 +62,7 @@
 
 ## 已裁决语义（不得"顺手修复"）
 
-1. **指标全缺的域不参与计算**：industry 需 `current_org`/`current_title` 至少其一；lab 需角色信息（`role_section`/`role_type`）与实验室信息（`lab_name`/`parent_lab`）至少其一。全缺 → 该域无子分、不出现在 domain_scores。
+1. **指标全缺的域不参与计算**：industry 需 `current_org`/`current_title` 至少其一；lab 需角色信息（`role_section`/`role_type`）与实验室信息（`lab_name`/`parent_lab`）至少其一；academic 需 `h_index`/`cited_by_count`/`works_count`/`latest_active_year` 至少其一；open_source 需 `total_stars_received`/`followers_count`/`primary_languages` 至少其一；competition 需 `max_rating`/`current_rating`/`rank_title`/`medals_gold`/`medals_silver`/`medals_bronze` 至少其一。全缺 → 该域无子分、不出现在 domain_scores，且**不进该域批量归一化列表**（否则全 0 值会拉偏其他人的归一化分位）。
 2. **所有域均缺 → t_score=null**，榜单尾置，rank 照编。
 3. **子串误匹配面**：机构/实验室匹配是子串包含，"Fairfield" 会命中 `fair`（LAB_PRESTIGE 1.0）——已知启发式限制，报告如遇可人工复核，不改代码。
 4. **match_score=0 怪异点**：`match_score=0`（含回退得到的 `best_match_score=0`，非 None）走三因子权重，行业子分 = `100×(0.5×org+0.3×title)`，低于无 match 时的 `100×(0.625×org+0.375×title)`；默认锚点（org 0.6、title 0.5）下即 **45.0 vs 56.2**——0 分锚点低于默认锚点，已知怪异点，保留。

@@ -49,7 +49,8 @@ def _canonical_github(item: dict) -> str:
 
 def _flatten_tags(item: dict) -> set[str]:
     tags: set[str] = set()
-    for key in ("topic_tags", "tech_tags", "research_areas"):
+    # "tags"：跨域搜索摘要（UnifiedTalentSummary）的标签键
+    for key in ("topic_tags", "tech_tags", "research_areas", "tags"):
         val = item.get(key)
         if isinstance(val, list):
             entries = val
@@ -74,7 +75,8 @@ def _record_identity(item: dict) -> dict:
         "name": normalize_name(item.get("name_en") or item.get("name")
                                or item.get("real_name") or ""),
         "cn_name": normalize_name(item.get("name") or item.get("real_name") or ""),
-        "homepage": normalize_url(item.get("homepage") or ""),
+        # url 回退：跨域搜索摘要无 homepage，主页字段叫 url（可触发 high 合并）
+        "homepage": normalize_url(item.get("homepage") or item.get("url") or ""),
         "github": _canonical_github(item),
         "orcid": (item.get("orcid") or "").lower().strip(),
         "email": (item.get("email") or "").lower().strip(),

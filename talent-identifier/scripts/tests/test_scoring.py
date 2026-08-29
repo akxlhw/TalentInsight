@@ -90,6 +90,34 @@ def test_signal_less_domain_skipped():
     assert by["p3"]["rank"] == 1
 
 
+def test_signal_less_academic_os_comp_skipped():
+    # 指标全缺的学术/开源/竞赛记录不产生合成分（names 模式跨域搜索摘要无指标，必然触发）
+    profs = [_prof("p1", "A", academic={}),
+             _prof("p2", "B", open_source={}),
+             _prof("p3", "C", competition={})]
+    rows = scoring.compute_scores(profs)
+    assert all(r["t_score"] is None for r in rows)
+
+
+def test_partial_signal_scores_and_skipped_excluded_from_norm():
+    # 部分信号仍评分（academic 仅 latest_active_year 也算有信号）；
+    # 无信号者不进批量归一化列表——否则会以全 0 拉偏其他人的归一化分位
+    profs = [_prof("p1", "A", academic={"h_index": 50, "cited_by_count": 9999,
+                                        "works_count": 50}),
+             _prof("p2", "B", academic={}),  # 无信号 → 跳过
+             _prof("p3", "C", open_source={"primary_languages": ["Python", "Rust"]}),
+             _prof("p4", "D", competition={"rank_title": "grandmaster"}),
+             _prof("p5", "E", academic={"latest_active_year": 2026})]
+    rows = scoring.compute_scores(profs)
+    by = {r["person_id"]: r for r in rows}
+    assert by["p2"]["t_score"] is None
+    # p1/p5 参与学术归一化（p2 被排除）：p1 各 log 指标取满 1.0 而非被 0 值稀释
+    assert by["p1"]["score_components"]["academic"]["h_index"] == 1.0
+    assert "academic" in by["p5"]["domain_scores"]  # 仅活跃年份也算有信号
+    assert "open_source" in by["p3"]["domain_scores"]
+    assert "competition" in by["p4"]["domain_scores"]
+
+
 def test_role_weight_postdoc_first():
     # 复合词优先：postdoc 必须先于 researcher 命中，否则被静默打高
     assert scoring._role_weight("Postdoctoral Researcher", "") == 0.6

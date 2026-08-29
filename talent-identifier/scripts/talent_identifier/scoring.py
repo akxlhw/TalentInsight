@@ -6,6 +6,12 @@ ACADEMIC_WEIGHTS = {"h_index": 0.35, "cited_by": 0.35, "works": 0.15, "activity"
 OS_WEIGHTS = {"stars": 0.45, "followers": 0.35, "breadth": 0.20}
 COMP_WEIGHTS = {"rating": 0.60, "rank_title": 0.25, "medals": 0.15}
 
+# 各域评分信号键：全缺（None/无键）的记录不参与该域计算，也不进批量归一化列表
+ACADEMIC_SIGNAL_KEYS = ("h_index", "cited_by_count", "works_count", "latest_active_year")
+OS_SIGNAL_KEYS = ("total_stars_received", "followers_count", "primary_languages")
+COMP_SIGNAL_KEYS = ("max_rating", "current_rating", "rank_title",
+                    "medals_gold", "medals_silver", "medals_bronze")
+
 # 顺序即优先级：复合词/长键必须在前（子串匹配，先命中先返回）
 ROLE_RULES = [("faculty", 1.0), ("professor", 1.0), ("research scientist", 0.8),
               ("postdoc", 0.6), ("researcher", 0.8), ("alumni", 0.5),
@@ -83,9 +89,14 @@ def _industry_weights(has_match: bool):
     return {"org": 0.625, "title": 0.375, "match": 0.0}
 
 
+def _has_signal(it: dict, keys) -> bool:
+    return any(it.get(k) is not None for k in keys)
+
+
 def score_academic(profiles):
-    """学术域子分：h/引用/作品 log 归一 + 活跃度衰减。"""
-    rows = [p for p in profiles if "academic" in p["records"]]
+    """学术域子分：h/引用/作品 log 归一 + 活跃度衰减；指标全缺的记录不参与。"""
+    rows = [p for p in profiles if "academic" in p["records"]
+            and _has_signal(p["records"]["academic"], ACADEMIC_SIGNAL_KEYS)]
     if not rows:
         return {}
     items = [p["records"]["academic"] for p in rows]
@@ -102,8 +113,9 @@ def score_academic(profiles):
 
 
 def score_open_source(profiles):
-    """开源域子分：star/粉丝 log 归一 + 语言广度。"""
-    rows = [p for p in profiles if "open_source" in p["records"]]
+    """开源域子分：star/粉丝 log 归一 + 语言广度；指标全缺的记录不参与。"""
+    rows = [p for p in profiles if "open_source" in p["records"]
+            and _has_signal(p["records"]["open_source"], OS_SIGNAL_KEYS)]
     if not rows:
         return {}
     items = [p["records"]["open_source"] for p in rows]
@@ -138,8 +150,10 @@ def score_lab(profiles):
 
 
 def score_competition(profiles):
-    """竞赛域子分：rating log 归一（max 优先，缺失回退 current）+ 段位 + 奖牌复合式。"""
-    rows = [p for p in profiles if "competition" in p["records"]]
+    """竞赛域子分：rating log 归一（max 优先，缺失回退 current）+ 段位 + 奖牌复合式；
+    指标全缺的记录不参与。"""
+    rows = [p for p in profiles if "competition" in p["records"]
+            and _has_signal(p["records"]["competition"], COMP_SIGNAL_KEYS)]
     if not rows:
         return {}
     items = [p["records"]["competition"] for p in rows]

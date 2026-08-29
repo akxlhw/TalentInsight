@@ -34,8 +34,9 @@
 
 - **github**：`github_login` > `github` > `social_links` 中第一个含 `github.com/` 的链接（social_links 为 list 取各值、为 dict 取各 value；取 `github.com/` 后第一段为 login）；裸 login（无 `github.com/`）补全为 `https://github.com/<login>`；最后过 `normalize_url`。比较全程大小写不敏感。
 - **机构**：六字段取第一个非空——`education_school` > `company_school` > `school` > `current_org` > `company` > `lab_name`（取单一值，不拼接）。
+- **homepage**：`homepage` 缺失时回退 `url`（跨域搜索摘要 UnifiedTalentSummary 无 homepage、主页字段叫 `url`），过 `normalize_url`。
 - **名字**：英文名 = `name_en`（回退 `name`，再回退 `real_name`）、中文名 = `name`（回退 `real_name`），各自规范化后独立比较，任一相等即名字相同。
-- **标签扁平化**：`topic_tags` + `tech_tags` + `research_areas` 三键并集；list 直接用，字符串按 `,`/`，` 切分；每项过 `normalize_name`。
+- **标签扁平化**：`topic_tags` + `tech_tags` + `research_areas` + `tags`（跨域搜索摘要键）四键并集；list 直接用，字符串按 `,`/`，` 切分；每项过 `normalize_name`。
 - `orcid`/`email`：仅 lower + strip。
 
 ## 规范化定义（normalize.py）

@@ -72,10 +72,11 @@ class OpenApiClient:
             return False
 
     def list_domain(self, domain: str, params: dict, limit: int) -> list[dict]:
+        path_domain = domain.replace("_", "-")  # config 域名 open_source → 路由 open-source
         items: list[dict] = []
         page, page_size = 1, min(100, max(1, limit))
         while len(items) < limit:
-            data = self._get(f"/open-api/{domain}/talents",
+            data = self._get(f"/open-api/{path_domain}/talents",
                              {**params, "page": page, "page_size": page_size})
             batch = data.get("items") or []
             items += batch
