@@ -14,6 +14,9 @@ description: |
 读 AI4TALENT 五域人才库 → 跨域关联 + T-score 榜单 → 互联网补全最新动态 → 三件套洞察报告。
 **纯消费型 skill：只读 Open API，绝不写回平台。**
 
+> 本文 `<skill>` 指 skill 安装目录（如 `C:\Users\Administrator\.agents\skills\talent-identifier`），
+> `<base_url>` 指配置中的 API 地址（默认 `http://localhost:8003/api/v1`）。
+
 ## 前置检查（执行前必做）
 
 1. 配置：cwd 或 skill 目录的 `ai4talent.config.json`，`api_key` 可用环境变量
@@ -32,7 +35,7 @@ uv run --with httpx python <skill>/scripts/fetch_profiles.py --mode domain --key
 uv run --with httpx python <skill>/scripts/compute_scores.py --run output/<run_id>
 ```
 
-fetch 的 exit code：0 成功；1 参数错误；2 后端不可达。单域失败记 gaps.txt 继续（部分成功优于完全失败）。`--resume` 跳过已完成 fetch 的 run。
+fetch 的 exit code：0 成功；1 参数错误；2 后端不可达。单域失败记 gaps.txt 继续（部分成功优于完全失败）。`--resume` 跳过已完成 fetch 的 run。可选参数：`--domains academic,lab`（限定域）、`--names-file names.txt`（名单文件，优先生效）。
 
 ## 模式 B：名单深挖（输入=人名列表）
 
