@@ -1,0 +1,8 @@
+{
+  "base_url": "http://localhost:8003/api/v1",
+  "api_key": "",
+  "top_n": 20,
+  "per_domain_limit": 50,
+  "domains": ["academic", "open_source", "lab", "competition", "industry"],
+  "exploration": { "max_searches": 6, "max_fetches": 4 }
+}
